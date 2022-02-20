@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# green if user, red if root
+if [ "$EUID" -ne 0 ]; then
+    PS1='\[\e[0;92m\]\u@\H\[\e[0m\]:\[\e[0;94m\]\w\[\e[0m\]$ '
+else
+    PS1='\[\e[0;91m\]\u@\H\[\e[0m\]:\[\e[0;94m\]\w\[\e[0m\]# '
+fi
