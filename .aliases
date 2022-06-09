@@ -21,7 +21,7 @@
 #     empty directories are excluded
 #
 # Requirements:
-#     "find", "md5sum", and "sort" installed on on the PATH
+#     "find", "md5sum", and "sort" installed and on the PATH
 #
 # Example Usage:
 #     1. redirect the output of md5ls to a  file that is NOT in the directory
