@@ -1,4 +1,72 @@
 #!/usr/bin/env bash
 
+# md5ls
+#
 # Output a sorted list of md5sums for all files in the current working directory
+#
+# Generates a consistent manifest which can be used to verify that two
+# directories contain identical contents, or diagnose any differences
+#
+# Records directory names and structure, filenames, and file contents only,
+# filesystem information such as permissions are ignored
+#
+# Output looks like:
+#
+# 0123456789abcdef0123456789abcdef  ./relative/filepath/filename
+# fedcba9876543210fedcba9876543210  ./relative/filepath/zzz
+#
+# There will be as many lines as there are files in the working directory
+#
+# Limitations:
+#     empty directories are excluded
+#
+# Requirements:
+#     "find", "md5sum", and "sort" installed on on the PATH
+#
+# Example Usage:
+#     1. redirect the output of md5ls to a  file that is NOT in the directory
+#         "md5ls > ~/somewhere/else/manifest.txt"
+#     2. repeat in two or more different directories you believe to be identical
+#     3. compare the manifests with "diff":
+#         "diff manifest.txt remote_manifest.txt"
+#             identical manifests will return no output
+#             differing manifests will return a summary of differences
+#
+# How it Works:
+#
+# Part 1: Generate md5 sums
+#    "find ." is used to recurse the directory tree from the current directory
+#         (find must run from "." to maintain filepath root consistency)
+#     "-type f" restricts find to files; links and directories are ignored
+#         (this is because we only want to calculate md5 sums for files,
+#         the directory structure is stored and verified via the filepaths)
+#     "-exex md5sum {} +" runs the md5sum command on the files found by find
+#         "{}" is replaced by the result of find, the filepaths
+#         "+" tells find to append multiple filepaths to the command
+#             (this is an optimization, it causes find to run as few md5sum
+#             commands as possible. the other option, ";" will start a new
+#             process for each file, which is slow.)
+# 
+# The result of Part 1 is an unsorted two-column list of md5sum and filepath
+# pairs, one file per line, delineated by two spaces. The output is unsorted
+# because find runs in the order of the raw filesystem objects for efficiency,
+# these objects have no specified order.
+#
+# A sorted list is desireable for two reasons:
+#     1. the manifest must be consistent for directories that contain identical
+#        contents, but two filesystems can store identical contents in a
+#        non-identical order. sorting the manifest removes this information
+#        about the filesystem's storage order.
+#     2. it makes reading the filepath column a lot easier
+#
+# Thus, the output of Part 1 is piped "|" to Part 2
+#
+# Part 2: Sort
+#     "LC_ALL=C" sets the shell localization for the environment of the sort
+#     command to the simplest locale, where characters are single ASCII bytes
+#         (this ensures a consistent sort order across platforms)
+#     "sort -k2" sorts the lines of the list by the 2nd column, the filepaths
+#         (this is preference, sorting without " -k2" is also valid, the list
+#         will instead be sorted by the first column, the md5sums)
+#
 alias md5ls="find . -type f -exec md5sum {} + | LC_ALL=C sort -k2"
