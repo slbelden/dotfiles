@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 
 # Output a sorted list of md5sums for all files in the current working directory
-alias md5ls="find . -type f -exec md5sum {} + | LC_ALL=C sort"
+alias md5ls="find . -type f -exec md5sum {} + | LC_ALL=C sort -k2"
